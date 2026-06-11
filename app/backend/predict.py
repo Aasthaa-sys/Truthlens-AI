@@ -35,7 +35,7 @@ transform = transforms.Compose([
         std=[0.229,0.224,0.225]
     )
 ])
-image_path = r"C:\Users\study\internproj\datasets\test\real\000000162415.jpg"
+image_path = r"C:\Users\study\internproj\datasets\test\manipulated\Tp_D_NRN_M_N_cha00027_cha00028_11785.jpg"
 print("Testing:", image_path)
 image = Image.open(image_path).convert("RGB")
 
