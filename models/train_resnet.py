@@ -1,0 +1,164 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import transforms
+from torchvision.datasets import ImageFolder
+from torch.utils.data import DataLoader
+from torchvision.models import resnet50
+
+train_transform = transforms.Compose([
+    transforms.Resize((224,224)),
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomRotation(10),
+    transforms.ToTensor()
+])
+
+val_transform = transforms.Compose([
+    transforms.Resize((224,224)),
+    transforms.ToTensor()
+])
+
+train_dataset = ImageFolder(
+    "datasets/train",
+    transform=train_transform
+)
+
+val_dataset = ImageFolder(
+    "datasets/val",
+    transform=val_transform
+)
+
+test_dataset = ImageFolder(
+    "datasets/test",
+    transform=val_transform
+)
+
+train_loader = DataLoader(
+    train_dataset,
+    batch_size=32,
+    shuffle=True
+)
+
+val_loader = DataLoader(
+    val_dataset,
+    batch_size=32
+)
+
+test_loader = DataLoader(
+    test_dataset,
+    batch_size=32
+)
+print("Train classes:", train_dataset.classes)
+print("Train size:", len(train_dataset))
+
+print("Val classes:", val_dataset.classes)
+print("Val size:", len(val_dataset))
+
+model = resnet50(weights="DEFAULT")
+
+import torch.nn as nn
+
+num_features = model.fc.in_features
+
+model.fc = nn.Linear(
+    num_features,
+    3
+)
+
+print(model.fc)
+criterion = nn.CrossEntropyLoss()
+
+optimizer = optim.Adam(
+    model.fc.parameters(),
+    lr=0.0001
+)
+print("Loss and Optimizer Ready")
+device = torch.device(
+    "cuda" if torch.cuda.is_available()
+    else "cpu"
+)
+
+print("Using Device:", device)
+
+model = model.to(device)
+print("Classes:", train_dataset.classes)
+#for epoch in range(10):
+
+   # model.train()
+
+   # running_loss = 0
+
+    # images = images.to(device)
+       # labels = labels.to(device)
+
+        #optimizer.zero_grad()
+
+        #outputs = model(images)
+
+       # loss = criterion(outputs, labels)
+
+        #loss.backward()
+
+        #optimizer.step()
+
+        #running_loss += loss.item()
+
+    #print(
+        #f"Epoch {epoch+1}/10, "
+       # f"Avg Loss: {running_loss/len(train_loader):.4f}"
+  #  )
+
+model.eval()
+
+correct = 0
+total = 0
+
+with torch.no_grad():
+
+    for images, labels in val_loader:
+
+        images = images.to(device)
+        labels = labels.to(device)
+
+        outputs = model(images)
+
+        _, predicted = torch.max(outputs, 1)
+
+        total += labels.size(0)
+
+        correct += (predicted == labels).sum().item()
+
+accuracy = 100 * correct / total
+
+print(f"Validation Accuracy: {accuracy:.2f}%")
+
+model.eval()
+
+correct = 0
+total = 0
+
+with torch.no_grad():
+
+    for images, labels in test_loader:
+
+        images = images.to(device)
+        labels = labels.to(device)
+
+        outputs = model(images)
+
+        _, predicted = torch.max(outputs, 1)
+
+        total += labels.size(0)
+
+        correct += (predicted == labels).sum().item()
+
+test_accuracy = 100 * correct / total
+
+print(f"Test Accuracy: {test_accuracy:.2f}%")
+
+torch.save(
+    model.state_dict(),
+    "models/truthlens_resnet.pth"
+)
+
+print("Model Saved Successfully")
