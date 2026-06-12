@@ -1,0 +1,14 @@
+efficientnet0 7
+gann research
+chatgpt image generation
+deepfake and watermark verification
+how much modified and where this image came from
+faceforensics video 4 different category video frames as images
+deepfake texts links also try to implement
+
+cnn
+google colab
+grad cam 
+streamlit
+
+metadata
