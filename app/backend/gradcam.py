@@ -47,7 +47,8 @@ print("Model Loaded Successfully")
 # IMAGE PATH
 # ==========================
 
-image_path = r"C:\Users\study\internproj\datasets\real\000000001503.jpg"
+image_path = r"C:\Users\study\internproj\datasets\test\manipulated\Tp_D_NRN_M_N_art10110_cha00063_11646.jpg"
+
 
 # ==========================
 # PREPROCESS
