@@ -22,10 +22,11 @@ sys.path.append(
 # ==========================
 
 from agents.deepfake_agent import predict_image
-from agents.risk_agent import assess_risk
 from agents.metadata_agent import extract_metadata
 from agents.forensics_agent import perform_ela
+from agents.risk_agent import assess_risk
 from agents.explanation_agent import generate_explanation
+from agents.report_agent import generate_report
 
 from backend.gradcam import generate_gradcam
 
@@ -109,7 +110,7 @@ if uploaded_file:
     )
 
     # ======================
-    # GRADCAM AGENT
+    # GRAD-CAM AGENT
     # ======================
 
     gradcam_path = generate_gradcam(
@@ -138,6 +139,18 @@ if uploaded_file:
     )
 
     # ======================
+    # PDF REPORT
+    # ======================
+
+    pdf_path = generate_report(
+        prediction,
+        confidence,
+        risk_level,
+        metadata_found,
+        explanation
+    )
+
+    # ======================
     # FORENSIC VISUALS
     # ======================
 
@@ -148,7 +161,6 @@ if uploaded_file:
     col1, col2, col3 = st.columns(3)
 
     with col1:
-
         st.image(
             temp_path,
             caption="Original Image",
@@ -156,7 +168,6 @@ if uploaded_file:
         )
 
     with col2:
-
         st.image(
             ela_path,
             caption="ELA Analysis",
@@ -164,7 +175,6 @@ if uploaded_file:
         )
 
     with col3:
-
         st.image(
             gradcam_path,
             caption="Grad-CAM Heatmap",
@@ -268,6 +278,28 @@ if uploaded_file:
     st.write(
         explanation
     )
+
+    st.markdown("---")
+
+    # ======================
+    # DOWNLOAD REPORT
+    # ======================
+
+    st.subheader(
+        "Download Report"
+    )
+
+    with open(
+        pdf_path,
+        "rb"
+    ) as pdf_file:
+
+        st.download_button(
+            label="Download Forensic Report (PDF)",
+            data=pdf_file,
+            file_name="TruthLens_Report.pdf",
+            mime="application/pdf"
+        )
 
     st.markdown("---")
 
