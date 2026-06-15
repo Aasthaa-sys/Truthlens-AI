@@ -1,112 +1,106 @@
-import torch
-import torch.nn as nn
-import cv2
-import numpy as np
+def generate_explanation(
+    prediction,
+    confidence,
+    metadata_found,
+    risk_level
+):
 
-from PIL import Image
-from torchvision import transforms
-from torchvision.models import resnet50
+    explanation = []
 
-from pytorch_grad_cam import GradCAM
-from pytorch_grad_cam.utils.image import show_cam_on_image
+    # ==========================
+    # PREDICTION
+    # ==========================
 
-
-def generate_heatmap(image_path):
-
-    model = resnet50(weights=None)
-
-    model.fc = nn.Linear(
-        model.fc.in_features,
-        3
+    explanation.append(
+        f"The image was classified as {prediction.upper()} "
+        f"with {confidence:.2f}% confidence."
     )
 
-    model.load_state_dict(
-        torch.load(
-            "models/truthlens_resnet.pth",
-            map_location="cpu"
+    # ==========================
+    # CLASS SPECIFIC
+    # ==========================
+
+    if prediction == "deepfake":
+
+        explanation.append(
+            "The detection model found strong indicators "
+            "of AI-generated or synthetic facial content."
         )
-    )
 
-    model.eval()
+    elif prediction == "manipulated":
 
-    transform = transforms.Compose([
-        transforms.Resize((224,224)),
-        transforms.ToTensor(),
-        transforms.Normalize(
-            mean=[0.485,0.456,0.406],
-            std=[0.229,0.224,0.225]
+        explanation.append(
+            "The image contains signs of digital editing "
+            "or post-processing modifications."
         )
-    ])
 
-    image = Image.open(
-        image_path
-    ).convert("RGB")
+    else:
 
-    input_tensor = transform(
-        image
-    ).unsqueeze(0)
-
-    target_layers = [
-        model.layer4[-1]
-    ]
-
-    cam = GradCAM(
-        model=model,
-        target_layers=target_layers
-    )
-
-    grayscale_cam = cam(
-        input_tensor=input_tensor
-    )[0]
-
-    rgb_img = cv2.imread(
-        image_path
-    )
-
-    rgb_img = cv2.cvtColor(
-        rgb_img,
-        cv2.COLOR_BGR2RGB
-    )
-
-    rgb_img = cv2.resize(
-        rgb_img,
-        (224,224)
-    )
-
-    rgb_img = np.float32(
-        rgb_img
-    ) / 255
-
-    visualization = show_cam_on_image(
-        rgb_img,
-        grayscale_cam,
-        use_rgb=True
-    )
-
-    save_path = (
-        "outputs/heatmaps/gradcam_result.jpg"
-    )
-
-    cv2.imwrite(
-        save_path,
-        cv2.cvtColor(
-            visualization,
-            cv2.COLOR_RGB2BGR
+        explanation.append(
+            "The image appears consistent with authentic "
+            "camera-generated content."
         )
+
+    # ==========================
+    # METADATA
+    # ==========================
+
+    if metadata_found:
+
+        explanation.append(
+            "Metadata was detected in the image file, "
+            "providing additional forensic information."
+        )
+
+    else:
+
+        explanation.append(
+            "No metadata was found in the image. "
+            "Missing metadata can occur when images are "
+            "edited, exported, compressed, or AI-generated."
+        )
+
+    # ==========================
+    # ELA
+    # ==========================
+
+    explanation.append(
+        "Error Level Analysis (ELA) was performed to "
+        "identify unusual compression patterns that may "
+        "indicate manipulation."
     )
 
-    return save_path
+    # ==========================
+    # GRADCAM
+    # ==========================
+
+    explanation.append(
+        "Grad-CAM visualization highlights the regions "
+        "that most influenced the neural network's decision."
+    )
+
+    # ==========================
+    # RISK
+    # ==========================
+
+    explanation.append(
+        f"Overall forensic risk assessment: {risk_level}."
+    )
+
+    # ==========================
+    # RETURN
+    # ==========================
+
+    return "\n\n".join(explanation)
 
 
 if __name__ == "__main__":
 
-    image_path = r"C:\Users\study\internproj\datasets\test\real\000000058350.jpg"
-
-    result = generate_heatmap(
-        image_path
+    result = generate_explanation(
+        prediction="deepfake",
+        confidence=99.97,
+        metadata_found=False,
+        risk_level="HIGH"
     )
 
-    print(
-        "Heatmap Saved:",
-        result
-    )
+    print(result)

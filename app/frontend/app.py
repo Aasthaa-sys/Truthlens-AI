@@ -20,22 +20,13 @@ sys.path.append(
 # ==========================
 # IMPORT AGENTS
 # ==========================
-import os
-import sys
-
-project_root = os.path.abspath(
-    os.path.join(
-        os.path.dirname(__file__),
-        ".."
-    )
-)
-
-sys.path.append(project_root)
 
 from agents.deepfake_agent import predict_image
 from agents.risk_agent import assess_risk
 from agents.metadata_agent import extract_metadata
 from agents.forensics_agent import perform_ela
+from agents.explanation_agent import generate_explanation
+
 from backend.gradcam import generate_gradcam
 
 # ==========================
@@ -133,6 +124,17 @@ if uploaded_file:
         prediction,
         confidence,
         metadata_found
+    )
+
+    # ======================
+    # EXPLANATION AGENT
+    # ======================
+
+    explanation = generate_explanation(
+        prediction,
+        confidence,
+        metadata_found,
+        risk_level
     )
 
     # ======================
@@ -252,6 +254,20 @@ if uploaded_file:
         st.warning(
             "No Metadata Found"
         )
+
+    st.markdown("---")
+
+    # ======================
+    # EXPLANATION
+    # ======================
+
+    st.subheader(
+        "Forensic Explanation"
+    )
+
+    st.write(
+        explanation
+    )
 
     st.markdown("---")
 
