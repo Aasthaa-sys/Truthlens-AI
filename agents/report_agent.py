@@ -18,6 +18,8 @@ def generate_report(
     metadata_found,
     explanation
 ):
+    import os
+    os.makedirs("outputs/reports", exist_ok=True)
 
     pdf_path = "outputs/reports/report.pdf"
 
