@@ -1,20 +1,40 @@
-datasets/
-venv/
+# Python cache
 __pycache__/
 *.pyc
+*.pyo
 
-models/*.pth
-
-outputs/
-
-.vscode/
+# Virtual environments
+venv/
 venv311/
-# Never push these
-.streamlit/secrets.toml
 
-*.pth
-*.pt
-*.pkl
+# Secrets
+.streamlit/secrets.toml
 .env
+
+# Temporary files
 temp/
 *.tmp
+temp_face.jpg
+
+# Datasets
+datasets/
+
+# IDE
+.vscode/
+
+# Model files
+# Ignore all models except deployment model
+*.pth
+*.pt
+!models/truthlens_resnet.pth
+
+# Ignore backup/duplicate models
+models/*backup*.pth
+models/*Copy*.pth
+
+# Generated outputs
+outputs/
+reports/
+
+# Jupyter
+.ipynb_checkpoints/
