@@ -9,3 +9,12 @@ outputs/
 
 .vscode/
 venv311/
+# Never push these
+.streamlit/secrets.toml
+
+*.pth
+*.pt
+*.pkl
+.env
+temp/
+*.tmp
