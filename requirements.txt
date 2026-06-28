@@ -16,3 +16,4 @@ sentence-transformers
 pytesseract
 fpdf
 gdown
+reportlab
