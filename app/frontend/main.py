@@ -20,7 +20,7 @@ sys.path.append(
 # ==========================
 # IMPORT AGENTS
 # ==========================
-
+from agents.llm_agent import generate_llm_explanation
 from agents.deepfake_agent import predict_image
 from agents.metadata_agent import extract_metadata
 from agents.forensics_agent import perform_ela
@@ -399,11 +399,20 @@ if uploaded_file:
         reasons.append("Watermark detected in image")
 
     progress.progress(92)
-    explanation = generate_explanation(
+    explanation = generate_llm_explanation(
+
         prediction,
+
         confidence,
+
+        risk_level,
+
         metadata_found,
-        risk_level
+
+        watermark_found,
+
+        extracted_text
+
     )
 
     progress.progress(98)
