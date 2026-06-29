@@ -12,10 +12,33 @@ from pytorch_grad_cam import GradCAM
 from pytorch_grad_cam.utils.image import show_cam_on_image
 
 # ==========================
-# CREATE OUTPUT DIRECTORY
+# PROJECT ROOT
 # ==========================
 
-OUTPUT_DIR = os.path.join("outputs", "gradcam")
+BASE_DIR = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        "..",
+        ".."
+    )
+)
+
+# ==========================
+# PATHS
+# ==========================
+
+MODEL_PATH = os.path.join(
+    BASE_DIR,
+    "models",
+    "truthlens_resnet.pth"
+)
+
+OUTPUT_DIR = os.path.join(
+    BASE_DIR,
+    "outputs",
+    "gradcam"
+)
+
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 # ==========================
@@ -24,19 +47,31 @@ os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 model = resnet50(weights=None)
 
-# Change to 2 if your model was trained on Real vs Deepfake
 model.fc = nn.Linear(
     model.fc.in_features,
     3
 )
 
-model.load_state_dict(
-    torch.load(
-        "models/truthlens_resnet.pth",
-        map_location=torch.device("cpu")
+if not os.path.exists(MODEL_PATH):
+    raise FileNotFoundError(
+        f"Model file not found: {MODEL_PATH}"
     )
+
+checkpoint = torch.load(
+    MODEL_PATH,
+    map_location=torch.device("cpu")
 )
 
+if isinstance(checkpoint, dict) and "state_dict" in checkpoint:
+    checkpoint = checkpoint["state_dict"]
+
+clean_checkpoint = {}
+
+for key, value in checkpoint.items():
+    clean_key = key.replace("module.", "")
+    clean_checkpoint[clean_key] = value
+
+model.load_state_dict(clean_checkpoint)
 model.eval()
 
 # ==========================
@@ -44,6 +79,10 @@ model.eval()
 # ==========================
 
 def generate_gradcam(image_path):
+    if not image_path or not os.path.exists(image_path):
+        raise FileNotFoundError(
+            f"Input image not found: {image_path}"
+        )
 
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
@@ -55,25 +94,23 @@ def generate_gradcam(image_path):
     ])
 
     image = Image.open(image_path).convert("RGB")
-
     input_tensor = transform(image).unsqueeze(0)
 
     target_layers = [model.layer4[-1]]
 
-    cam = GradCAM(
+    with GradCAM(
         model=model,
         target_layers=target_layers
-    )
-
-    grayscale_cam = cam(
-        input_tensor=input_tensor
-    )[0]
+    ) as cam:
+        grayscale_cam = cam(
+            input_tensor=input_tensor
+        )[0]
 
     rgb_img = cv2.imread(image_path)
 
     if rgb_img is None:
         raise FileNotFoundError(
-            f"Unable to read image: {image_path}"
+            f"Unable to read image with OpenCV: {image_path}"
         )
 
     rgb_img = cv2.cvtColor(
@@ -99,7 +136,7 @@ def generate_gradcam(image_path):
         "gradcam_result.jpg"
     )
 
-    success = cv2.imwrite(
+    saved = cv2.imwrite(
         save_path,
         cv2.cvtColor(
             visualization,
@@ -107,9 +144,9 @@ def generate_gradcam(image_path):
         )
     )
 
-    if not success:
+    if not saved:
         raise RuntimeError(
-            f"Failed to save Grad-CAM image: {save_path}"
+            f"OpenCV failed to save Grad-CAM image: {save_path}"
         )
 
     if not os.path.exists(save_path):
@@ -121,8 +158,10 @@ def generate_gradcam(image_path):
 
 
 if __name__ == "__main__":
-
-    test_image = "sample.jpg"  # Replace with your image path
+    test_image = os.path.join(
+        BASE_DIR,
+        "sample.jpg"
+    )
 
     output = generate_gradcam(test_image)
 
