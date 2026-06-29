@@ -200,9 +200,9 @@ if page == "Dashboard":
     st.markdown("### Processing Pipeline")
 
     st.info(
-        "Upload  ->  Deepfake Detection  ->  Metadata Analysis  ->  "
-        "Watermark Detection  ->  OCR  ->  ELA  ->  Grad-CAM  ->  "
-        "Risk Assessment  ->  Report Generation"
+        "Upload -> Deepfake Detection -> Metadata Analysis -> "
+        "Watermark Detection -> OCR -> ELA -> Grad-CAM -> "
+        "Risk Assessment -> Report Generation"
     )
 
     st.markdown("---")
@@ -246,14 +246,14 @@ if page == "About":
     """)
 
     st.markdown("""
-    1. **Deepfake Agent** — ResNet50-based classifier trained on real, deepfake and AI-generated images
-    2. **Metadata Agent** — Extracts and analyzes EXIF and file metadata
-    3. **Watermark Agent** — Detects visible and hidden watermarks
-    4. **OCR Agent** — Extracts embedded text using Tesseract
-    5. **ELA Agent** — Error Level Analysis to detect compression tampering
-    6. **Grad-CAM** — Produces visual heatmaps showing which regions influenced the prediction
-    7. **Risk Agent** — Aggregates signals to assign a risk level
-    8. **Report Agent** — Generates a downloadable PDF forensic report
+    1. **Deepfake Agent** - ResNet50-based classifier trained on real, deepfake and AI-generated images
+    2. **Metadata Agent** - Extracts and analyzes EXIF and file metadata
+    3. **Watermark Agent** - Detects visible and hidden watermarks
+    4. **OCR Agent** - Extracts embedded text using Tesseract
+    5. **ELA Agent** - Error Level Analysis to detect compression tampering
+    6. **Grad-CAM** - Produces visual heatmaps showing which regions influenced the prediction
+    7. **Risk Agent** - Aggregates signals to assign a risk level
+    8. **Report Agent** - Generates a downloadable PDF forensic report
     """)
 
     st.markdown("---")
@@ -287,11 +287,7 @@ if uploaded_file:
 
     if file_extension == "mp4":
 
-        with tempfile.NamedTemporaryFile(
-            delete=False,
-            suffix=".mp4"
-        ) as temp_file:
-
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_file:
             temp_file.write(uploaded_file.read())
             temp_path = temp_file.name
 
@@ -300,12 +296,8 @@ if uploaded_file:
 
         progress.progress(20)
 
-        (
-            prediction,
-            confidence,
-            predictions,
-            confidences
-        ) = predict_video(temp_path)
+        prediction, confidence, predictions, confidences = predict_video(temp_path)
+        confidence = float(confidence)
 
         progress.progress(60)
 
@@ -324,15 +316,15 @@ if uploaded_file:
         v1, v2, v3 = st.columns(3)
 
         with v1:
-            st.metric("Prediction", prediction.upper())
+            st.metric("Prediction", str(prediction).upper())
 
         with v2:
-            st.metric("Confidence", f"{confidence}%")
+            st.metric("Confidence", f"{confidence:.2f}%")
 
         with v3:
             st.metric("Frames Analysed", len(predictions))
 
-        st.progress(confidence / 100)
+        st.progress(min(max(confidence / 100, 0), 1))
         st.caption(f"Confidence Score: {confidence:.2f}%")
 
         st.markdown("---")
@@ -357,7 +349,7 @@ if uploaded_file:
 
         st.markdown("""
         <p style='text-align:center; color:#64748b; font-size:13px;'>
-        TruthLens AI — Powered by ResNet50 + Multi-Agent Framework
+        TruthLens AI - Powered by ResNet50 + Multi-Agent Framework
         </p>
         """, unsafe_allow_html=True)
 
@@ -367,11 +359,9 @@ if uploaded_file:
     # IMAGE ANALYSIS
     # ======================
 
-    with tempfile.NamedTemporaryFile(
-        delete=False,
-        suffix=".jpg"
-    ) as temp_file:
+    image_suffix = "." + file_extension
 
+    with tempfile.NamedTemporaryFile(delete=False, suffix=image_suffix) as temp_file:
         temp_file.write(uploaded_file.read())
         temp_path = temp_file.name
 
@@ -380,10 +370,11 @@ if uploaded_file:
 
     progress.progress(10)
     prediction, confidence = predict_image(temp_path)
+    confidence = float(confidence)
 
     progress.progress(25)
     metadata = extract_metadata(temp_path)
-    metadata_found = (len(metadata) > 0)
+    metadata_found = len(metadata) > 0
 
     progress.progress(40)
     watermark_found, watermark_text = detect_watermark(temp_path)
@@ -451,7 +442,7 @@ if uploaded_file:
         r1, r2, r3 = st.columns(3)
 
         with r1:
-            st.metric("Prediction", prediction.upper())
+            st.metric("Prediction", str(prediction).upper())
 
         with r2:
             st.metric("Confidence", f"{confidence:.2f}%")
@@ -459,17 +450,17 @@ if uploaded_file:
         with r3:
             st.metric("Risk Level", risk_level)
 
-        st.progress(confidence / 100)
+        st.progress(min(max(confidence / 100, 0), 1))
         st.caption(f"Confidence Score: {confidence:.2f}%")
 
         st.markdown("---")
 
-        if prediction.lower() == "deepfake":
-            st.error("Deepfake Detected — This image shows signs of AI manipulation.")
-        elif prediction.lower() == "ai generated":
-            st.warning("AI Generated Content — This image appears to be synthetically created.")
+        if str(prediction).lower() == "deepfake":
+            st.error("Deepfake Detected - This image shows signs of AI manipulation.")
+        elif str(prediction).lower() == "ai generated":
+            st.warning("AI Generated Content - This image appears to be synthetically created.")
         else:
-            st.success("Real Image — No deepfake indicators found.")
+            st.success("Real Image - No deepfake indicators found.")
 
         st.markdown("---")
 
@@ -504,27 +495,39 @@ if uploaded_file:
 
         with col1:
             st.markdown("**Original Image**")
-            st.image(
-                temp_path,
-                caption="Original",
-                use_container_width=True
-            )
+
+            if os.path.exists(temp_path):
+                st.image(
+                    temp_path,
+                    caption="Original",
+                    use_container_width=True
+                )
+            else:
+                st.warning("Original image not found.")
 
         with col2:
             st.markdown("**Error Level Analysis**")
-            st.image(
-                ela_path,
-                caption="ELA",
-                use_container_width=True
-            )
+
+            if os.path.exists(ela_path):
+                st.image(
+                    ela_path,
+                    caption="ELA",
+                    use_container_width=True
+                )
+            else:
+                st.warning("ELA image could not be generated.")
 
         with col3:
             st.markdown("**Grad-CAM Heatmap**")
-            st.image(
-                gradcam_path,
-                caption="Grad-CAM",
-                use_container_width=True
-            )
+
+            if os.path.exists(gradcam_path):
+                st.image(
+                    gradcam_path,
+                    caption="Grad-CAM",
+                    use_container_width=True
+                )
+            else:
+                st.warning("Grad-CAM image could not be generated.")
 
         st.markdown("---")
 
@@ -538,7 +541,7 @@ if uploaded_file:
 
         st.markdown("---")
 
-        with st.expander("OCR — Extracted Text"):
+        with st.expander("OCR - Extracted Text"):
 
             if extracted_text.strip():
                 st.success("Text found in image.")
@@ -579,19 +582,21 @@ if uploaded_file:
             "confidence score, risk level, metadata status and AI-generated explanation."
         )
 
-        with open(pdf_path, "rb") as pdf_file:
-
-            st.download_button(
-                label="Download Forensic Report (PDF)",
-                data=pdf_file,
-                file_name="TruthLens_Report.pdf",
-                mime="application/pdf"
-            )
+        if os.path.exists(pdf_path):
+            with open(pdf_path, "rb") as pdf_file:
+                st.download_button(
+                    label="Download Forensic Report (PDF)",
+                    data=pdf_file,
+                    file_name="TruthLens_Report.pdf",
+                    mime="application/pdf"
+                )
+        else:
+            st.error("Report could not be generated.")
 
     st.markdown("---")
 
     st.markdown("""
     <p style='text-align:center; color:#64748b; font-size:13px;'>
-    TruthLens AI — Powered by ResNet50, Grad-CAM, OpenCV, PyTorch and Streamlit
+    TruthLens AI - Powered by ResNet50, Grad-CAM, OpenCV, PyTorch and Streamlit
     </p>
     """, unsafe_allow_html=True)
