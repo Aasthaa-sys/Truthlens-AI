@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import cv2
 import numpy as np
+import os
+os.makedirs("outputs/gradcam", exist_ok=True)
 
 from PIL import Image
 from torchvision import transforms

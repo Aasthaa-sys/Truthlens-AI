@@ -6,6 +6,7 @@ from agents.frame_preprocessor import enhance_frame
 from agents.video_agent import extract_frames
 from agents.deepfake_agent import predict_image
 
+os.makedirs("outputs/videos", exist_ok=True)
 
 def predict_video(video_path):
 

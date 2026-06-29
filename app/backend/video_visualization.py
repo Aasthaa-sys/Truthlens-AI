@@ -14,6 +14,7 @@ def create_prediction_pie(predictions):
         "outputs/charts",
         exist_ok=True
     )
+    
 
     save_path = "outputs/charts/prediction_pie.png"
 

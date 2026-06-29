@@ -8,6 +8,7 @@ def create_confidence_graph(confidences):
         "outputs/charts",
         exist_ok=True
     )
+    os.makedirs("outputs/graphs", exist_ok=True)
 
     save_path = "outputs/charts/confidence_graph.png"
 

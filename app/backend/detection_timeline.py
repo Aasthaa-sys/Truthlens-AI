@@ -19,6 +19,7 @@ def create_timeline(predictions):
         "outputs/charts",
         exist_ok=True
     )
+    os.makedirs("outputs/graphs", exist_ok=True)
 
     save_path = "outputs/charts/timeline.png"
 
