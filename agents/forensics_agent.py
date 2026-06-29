@@ -3,50 +3,56 @@ from PIL import Image, ImageChops, ImageEnhance
 
 
 def perform_ela(image_path):
+    """
+    Perform Error Level Analysis (ELA) on an image.
 
-    temp_path = "outputs/forensics/temp_ela.jpg"
-    ela_path = "outputs/forensics/ela_result2.jpg"
+    Args:
+        image_path (str): Path to input image.
 
-    os.makedirs(os.path.dirname(temp_path), exist_ok=True)
+    Returns:
+        str: Path to generated ELA image.
+    """
 
+    # Create output directory if it doesn't exist
+    output_dir = os.path.join("outputs", "forensics")
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Output file paths
+    temp_path = os.path.join(output_dir, "temp_ela.jpg")
+    ela_path = os.path.join(output_dir, "ela_result.jpg")
+
+    # Open original image
     image = Image.open(image_path).convert("RGB")
 
-    image.save(
-        temp_path,
-        "JPEG",
-        quality=90
-    )
+    # Save temporary compressed image
+    image.save(temp_path, "JPEG", quality=90)
 
+    # Reopen compressed image
     resaved = Image.open(temp_path)
 
-    diff = ImageChops.difference(
-        image,
-        resaved
-    )
+    # Compute difference
+    diff = ImageChops.difference(image, resaved)
 
+    # Find maximum difference
     extrema = diff.getextrema()
-
-    max_diff = max(
-        ex[1]
-        for ex in extrema
-    )
+    max_diff = max(channel[1] for channel in extrema)
 
     if max_diff == 0:
         max_diff = 1
 
+    # Enhance brightness
     scale = 255.0 / max_diff
+    ela_image = ImageEnhance.Brightness(diff).enhance(scale)
 
-    diff = ImageEnhance.Brightness(diff).enhance(scale)
-
-    diff.save(ela_path)
+    # Save ELA image
+    ela_image.save(ela_path)
 
     return ela_path
 
 
 if __name__ == "__main__":
-
     image_path = r"C:\Users\study\internproj\datasets\test\real\000000045550.jpg"
 
     result = perform_ela(image_path)
 
-    print("ELA Saved:", result)
+    print("ELA image saved at:", result)
