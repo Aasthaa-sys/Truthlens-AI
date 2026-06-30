@@ -17,5 +17,3 @@ pytesseract
 fpdf
 gdown
 reportlab
-huggingface_hub
-requests
