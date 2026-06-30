@@ -1,72 +1,51 @@
-import ollama
+import os
+import requests
+
+API_URL = "https://api-inference.huggingface.co/models/google/gemma-2-2b-it"
+
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 
 def generate_llm_explanation(
     prediction,
     confidence,
-    risk_level,
     metadata_found,
     watermark_found,
     extracted_text
 ):
 
     prompt = f"""
-You are an AI Digital Forensics Expert.
+You are a digital forensic expert.
 
-Analyze the following forensic results.
+Prediction: {prediction}
+Confidence: {confidence}%
+Metadata Found: {metadata_found}
+Watermark Found: {watermark_found}
+OCR Text: {extracted_text}
 
-Prediction:
-{prediction}
-
-Confidence:
-{confidence}%
-
-Risk Level:
-{risk_level}
-
-Metadata Present:
-{metadata_found}
-
-Watermark Detected:
-{watermark_found}
-
-Extracted Text:
-{extracted_text}
-
-Generate a professional forensic explanation.
-
-Mention:
-
-• Why the model predicted this class.
-
-• Explain confidence score.
-
-• Explain metadata findings.
-
-• Explain watermark findings.
-
-• Explain OCR findings.
-
-• Mention that Grad-CAM highlights important regions.
-
-Keep the explanation between 150 and 200 words.
-
-Use professional language.
+Write a professional explanation in about 120 words.
 """
 
-    response = ollama.chat(
+    headers = {
+        "Authorization": f"Bearer {HF_TOKEN}"
+    }
 
-        model="gemma3:4b",
+    payload = {
+        "inputs": prompt
+    }
 
-        messages=[
-
-            {
-                "role": "user",
-                "content": prompt
-            }
-
-        ]
-
+    response = requests.post(
+        API_URL,
+        headers=headers,
+        json=payload
     )
 
-    return response["message"]["content"]
+    if response.status_code != 200:
+        return "Unable to generate AI explanation."
+
+    result = response.json()
+
+    if isinstance(result, list):
+        return result[0]["generated_text"]
+
+    return "Unable to generate AI explanation."

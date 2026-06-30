@@ -20,7 +20,7 @@ sys.path.append(
 # ==========================
 # IMPORT AGENTS
 # ==========================
-from agents.llm_agent import generate_llm_explanation
+
 from agents.deepfake_agent import predict_image
 from agents.metadata_agent import extract_metadata
 from agents.forensics_agent import perform_ela
@@ -30,6 +30,7 @@ from agents.report_agent import generate_report
 from agents.video_classifier import predict_video
 from agents.watermark_agent import detect_watermark
 import agents.ocr_agent as ocr
+from agents.llm_agent import generate_llm_explanation
 
 from app.backend.gradcam import generate_gradcam
 from app.backend.video_visualization import create_prediction_pie
@@ -400,20 +401,12 @@ if uploaded_file:
 
     progress.progress(92)
     explanation = generate_llm_explanation(
-
         prediction,
-
         confidence,
-
-        risk_level,
-
         metadata_found,
-
         watermark_found,
-
         extracted_text
-
-    )
+   )
 
     progress.progress(98)
     pdf_path = generate_report(
