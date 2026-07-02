@@ -1,36 +1,45 @@
 import cv2
+import mediapipe as mp
 
-face_cascade = cv2.CascadeClassifier(
-    cv2.data.haarcascades +
-    "haarcascade_frontalface_default.xml"
+mp_face = mp.solutions.face_detection
+
+face_detector = mp_face.FaceDetection(
+    model_selection=1,
+    min_detection_confidence=0.5
 )
+
 
 def extract_face(frame):
 
-    gray = cv2.cvtColor(
+    rgb = cv2.cvtColor(
         frame,
-        cv2.COLOR_BGR2GRAY
+        cv2.COLOR_BGR2RGB
     )
 
-    faces = face_cascade.detectMultiScale(
-        gray,
-        1.1,
-        4
-    )
+    results = face_detector.process(rgb)
 
-    if len(faces) == 0:
+    if not results.detections:
         return None
 
-    x, y, w, h = faces[0]
+    detection = results.detections[0]
+
+    bbox = detection.location_data.relative_bounding_box
+
+    h, w, _ = frame.shape
+
+    x = int(bbox.xmin * w)
+    y = int(bbox.ymin * h)
+    bw = int(bbox.width * w)
+    bh = int(bbox.height * h)
 
     padding = 20
 
     x = max(0, x - padding)
     y = max(0, y - padding)
 
-    w = w + (2 * padding)
-    h = h + (2 * padding)
+    bw = bw + (2 * padding)
+    bh = bh + (2 * padding)
 
-    face = frame[y:y+h, x:x+w]
+    face = frame[y:y+bh, x:x+bw]
 
     return face

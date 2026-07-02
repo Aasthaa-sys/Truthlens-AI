@@ -17,3 +17,4 @@ pytesseract
 fpdf
 gdown
 reportlab
+mediapipe==0.10.21
